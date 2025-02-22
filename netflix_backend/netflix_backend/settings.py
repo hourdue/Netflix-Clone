@@ -58,8 +58,8 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+        'movies.authentication.CustomJWTAuthentication',
+    ),
 }
 
 ROOT_URLCONF = 'netflix_backend.urls'
@@ -139,6 +139,17 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
+    'AUTH_COOKIE': 'access_token',  # Cookie name for access token
+    'AUTH_COOKIE_REFRESH': 'refresh_token',  # Cookie name for refresh token
+    'AUTH_COOKIE_DOMAIN': None,  # Change in production
+    'AUTH_COOKIE_SECURE': False,  # Set to True in production
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_PATH': '/',
+    'AUTH_COOKIE_SAMESITE': 'Lax',  # Change to 'Strict' in production
 }
 
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_COOKIE_SECURE = False  # Set to True in production
+CSRF_COOKIE_HTTPONLY = True
+CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']  # Add your frontend URL
