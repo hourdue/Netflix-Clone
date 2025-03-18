@@ -1,6 +1,7 @@
 import { useState, ChangeEvent, FormEvent } from "react";
 import { Eye, EyeOff, AlertCircle, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { isAuthenticated } from "../utils/auth";
 
 interface FormData {
   username: string;
@@ -8,14 +9,6 @@ interface FormData {
   rememberMe: boolean;
 }
 
-interface LoginResponse {
-  access: string;
-  refresh: string;
-  user: {
-    username: string;
-    email: string;
-  };
-}
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -44,8 +37,9 @@ const LoginPage = () => {
     setError("");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/token/", {
+      const response = await fetch("http://127.0.0.1:8000/api/auth/login/", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -60,19 +54,17 @@ const LoginPage = () => {
         throw new Error(errorData.detail || "Invalid credentials");
       }
 
-      const data: LoginResponse = await response.json();
-
-      if (formData.rememberMe) {
-        localStorage.setItem("accessToken", data.access);
-        localStorage.setItem("refreshToken", data.refresh);
-      } else {
-        sessionStorage.setItem("accessToken", data.access);
-        sessionStorage.setItem("refreshToken", data.refresh);
-      }
-
+      const data = await response.json();
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/home");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const isAuthed = await isAuthenticated();
+      if (isAuthed) {
+        navigate("/home");
+      } else {
+        throw new Error("Authentication failed");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

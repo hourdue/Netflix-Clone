@@ -7,14 +7,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.conf import settings
-from .authentication import CustomJWTAuthentication
+from .authentication import CustomAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken
 
 class LoginView(APIView):
-    authentication_classes = []  
-    permission_classes = [] 
-    
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -39,7 +36,7 @@ class LoginView(APIView):
                 access_token,
                 max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
                 httponly=True,
-                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                samesite='Lax',  
                 secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE']
             )
             response.set_cookie(
@@ -47,16 +44,11 @@ class LoginView(APIView):
                 refresh_token,
                 max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
                 httponly=True,
-                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                samesite='Lax',  
                 secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE']
             )
 
-            return response
-        else:
-            return Response(
-                {'error': 'Invalid credentials'}, 
-                status=status.HTTP_401_UNAUTHORIZED
-            )       
+            return response     
       
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
@@ -72,7 +64,7 @@ class RegisterView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class MovieView(viewsets.ModelViewSet):
-    authentication_classes = [CustomJWTAuthentication]
+    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer 
@@ -90,23 +82,35 @@ class LogoutView(APIView):
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
-        if refresh_token:
-            request.data['refresh'] = refresh_token
-        response = super().post(request, *args, **kwargs)
         
-        if response.status_code == 200:
-            response.set_cookie(
-                settings.SIMPLE_JWT['AUTH_COOKIE'],
-                response.data['access'],
-                max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
-                httponly=True,
-                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
-                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE']
+        if refresh_token is None:
+            return Response(
+                {"detail": "No refresh token found in cookies"}, 
+                status=status.HTTP_400_BAD_REQUEST
             )
-            
-        return response
+
+        request.data['refresh'] = refresh_token
+
+        try:
+            response = super().post(request, *args, **kwargs)
+            if response.status_code == 200:
+                response.set_cookie(
+                    settings.SIMPLE_JWT['AUTH_COOKIE'],
+                    response.data['access'],
+                    max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+                    httponly=True,
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE']
+                )
+            return response
+        except InvalidToken:
+            return Response(
+                {"detail": "Invalid refresh token"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class VerifyAuthView(APIView):
+    authentication_classes = [CustomAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request):

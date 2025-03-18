@@ -2,21 +2,20 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.conf import settings
 from rest_framework.authentication import CSRFCheck
 from rest_framework import exceptions
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
-class CustomJWTAuthentication(JWTAuthentication):
+class CustomAuthentication(JWTAuthentication):
     def authenticate(self, request):
-        header = self.get_header(request)
-        
-        # Check if token is in cookie
-        if not header:
-            raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
-            if raw_token is None:
-                return None
-            
+        raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        if raw_token is None:
+            return None
+
+        try:
             validated_token = self.get_validated_token(raw_token)
-            return self.get_user(validated_token), validated_token
-            
-        return super().authenticate(request)
+            user = self.get_user(validated_token)
+            return (user, validated_token)
+        except (InvalidToken, TokenError):
+            return None
 
     def enforce_csrf(self, request):
         check = CSRFCheck()

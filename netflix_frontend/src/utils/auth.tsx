@@ -1,17 +1,30 @@
-export const getAuthToken = () => {
-    return localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+export const isAuthenticated = async () => {
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/auth/user/", {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+    return data.isAuthenticated === true;
+  } catch (error) {
+    console.error("Auth check failed:", error);
+    return false;
+  }
 };
 
-export const isAuthenticated = () => {
-    return !!getAuthToken();
-};
+export const logout = async () => {
+  try {
+    await fetch("http://127.0.0.1:8000/api/auth/logout/", {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
 
-export const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-
-    window.location.href = '/login';
+  window.location.href = "/login";
 };

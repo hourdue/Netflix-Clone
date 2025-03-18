@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a19b3^6e=o(y0a0m^ke!75o&3i6a0$h-fiwqh2n2@8kkpeoz%9'
+SECRET_KEY = 'django-insecure-$#x9s=6ux7mrr!jh_8(dsasr%ll+jvii6-b#d2hl@!+w7t(x)u'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,28 +38,43 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders',
-    'movies',
+    'accounts',
 ]
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:5173']
+# Cookie settings for security
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True  # Set to False in development without HTTPS
+SESSION_COOKIE_SECURE = True  # Set to False in development without HTTPS
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+
+# Custom authentication backend
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Keep the default as fallback
+]
+
+# Custom authentication
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'accounts.auth.CustomTokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'movies.authentication.CustomJWTAuthentication',
-    ),
-}
 
 ROOT_URLCONF = 'netflix_backend.urls'
 
@@ -134,22 +148,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'AUTH_COOKIE': 'access_token',  # Cookie name for access token
-    'AUTH_COOKIE_REFRESH': 'refresh_token',  # Cookie name for refresh token
-    'AUTH_COOKIE_DOMAIN': None,  # Change in production
-    'AUTH_COOKIE_SECURE': False,  # Set to True in production
-    'AUTH_COOKIE_HTTP_ONLY': True,
-    'AUTH_COOKIE_PATH': '/',
-    'AUTH_COOKIE_SAMESITE': 'Lax',  # Change to 'Strict' in production
-}
-
-CORS_ALLOW_CREDENTIALS = True
-
-CSRF_COOKIE_SECURE = False  # Set to True in production
-CSRF_COOKIE_HTTPONLY = True
-CSRF_TRUSTED_ORIGINS = ['http://localhost:5173']  # Add your frontend URL
