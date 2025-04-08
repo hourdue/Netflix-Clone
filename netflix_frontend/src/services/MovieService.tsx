@@ -1,13 +1,13 @@
-import axios from 'axios';
-import { Movie } from '../types';
+import axios from "axios";
+import { Movie } from "../types";
 
-const API_URL = 'http://127.0.0.1:8000/api/movies/';
+const API_URL = "http://localhost:3000/api/movie";
 
 const getAuthHeaders = () => ({
-  credentials: 'include' as RequestCredentials,
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 export const getMovies = async () => {

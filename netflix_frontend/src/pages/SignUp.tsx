@@ -1,5 +1,5 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
-import { Eye, EyeOff, AlertCircle, Loader, Check, X } from 'lucide-react';
+import { useState, ChangeEvent, FormEvent } from "react";
+import { Eye, EyeOff, AlertCircle, Loader, Check, X } from "lucide-react";
 
 interface FormData {
   username: string;
@@ -15,15 +15,15 @@ interface ValidationErrors {
 
 const SignupPage = () => {
   const [formData, setFormData] = useState<FormData>({
-    username: '',
-    email: '',
-    password: '',
+    username: "",
+    email: "",
+    password: "",
   });
 
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [generalError, setGeneralError] = useState('');
+  const [generalError, setGeneralError] = useState("");
 
   const passwordRequirements = {
     minLength: 8,
@@ -46,33 +46,33 @@ const SignupPage = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
-    setErrors(prev => ({
+
+    setErrors((prev) => ({
       ...prev,
-      [name]: undefined
+      [name]: undefined,
     }));
-    setGeneralError('');
+    setGeneralError("");
   };
 
   const validateForm = () => {
     const newErrors: ValidationErrors = {};
-    
+
     if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters long';
+      newErrors.username = "Username must be at least 3 characters long";
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
     }
 
     const passwordChecks = validatePassword(formData.password);
     if (!Object.values(passwordChecks).every(Boolean)) {
-      newErrors.password = 'Password does not meet requirements';
+      newErrors.password = "Password does not meet requirements";
     }
 
     setErrors(newErrors);
@@ -81,19 +81,20 @@ const SignupPage = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
-    setGeneralError('');
+    setGeneralError("");
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/register/', {
-        method: 'POST',
+      const response = await fetch("http://localhost:3000/auth/register", {
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -101,13 +102,14 @@ const SignupPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Registration failed');
+        throw new Error(data.detail || "Registration failed");
       }
 
-      console.log('Registration successful:', data);
-      
+      console.log("Registration successful:", data);
     } catch (err) {
-      setGeneralError(err instanceof Error ? err.message : 'Registration failed');
+      setGeneralError(
+        err instanceof Error ? err.message : "Registration failed"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +134,9 @@ const SignupPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="username" className="sr-only">Username</label>
+            <label htmlFor="username" className="sr-only">
+              Username
+            </label>
             <input
               id="username"
               type="text"
@@ -141,10 +145,10 @@ const SignupPage = () => {
               onChange={handleChange}
               placeholder="Username"
               className={`w-full p-4 rounded bg-zinc-800 text-white border ${
-                errors.username ? 'border-red-500' : 'border-zinc-700'
+                errors.username ? "border-red-500" : "border-zinc-700"
               } focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600`}
               required
-              aria-invalid={errors.username ? 'true' : 'false'}
+              aria-invalid={errors.username ? "true" : "false"}
               disabled={isLoading}
             />
             {errors.username && (
@@ -153,7 +157,9 @@ const SignupPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="sr-only">Email address</label>
+            <label htmlFor="email" className="sr-only">
+              Email address
+            </label>
             <input
               id="email"
               type="email"
@@ -162,10 +168,10 @@ const SignupPage = () => {
               onChange={handleChange}
               placeholder="Email address"
               className={`w-full p-4 rounded bg-zinc-800 text-white border ${
-                errors.email ? 'border-red-500' : 'border-zinc-700'
+                errors.email ? "border-red-500" : "border-zinc-700"
               } focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600`}
               required
-              aria-invalid={errors.email ? 'true' : 'false'}
+              aria-invalid={errors.email ? "true" : "false"}
               disabled={isLoading}
             />
             {errors.email && (
@@ -175,28 +181,34 @@ const SignupPage = () => {
 
           <div className="space-y-2">
             <div className="relative">
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Password"
                 className={`w-full p-4 rounded bg-zinc-800 text-white border ${
-                  errors.password ? 'border-red-500' : 'border-zinc-700'
+                  errors.password ? "border-red-500" : "border-zinc-700"
                 } focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600`}
                 required
-                aria-invalid={errors.password ? 'true' : 'false'}
+                aria-invalid={errors.password ? "true" : "false"}
                 disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 top-4 text-zinc-400 hover:text-white focus:outline-none focus:text-white"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
 
@@ -205,7 +217,7 @@ const SignupPage = () => {
                 <div
                   key={check}
                   className={`flex items-center space-x-2 ${
-                    passes ? 'text-green-400' : 'text-zinc-400'
+                    passes ? "text-green-400" : "text-zinc-400"
                   }`}
                 >
                   {passes ? (
@@ -214,11 +226,11 @@ const SignupPage = () => {
                     <X className="w-4 h-4" />
                   )}
                   <span>
-                    {check === 'minLength' && 'At least 8 characters'}
-                    {check === 'hasUpperCase' && 'One uppercase letter'}
-                    {check === 'hasLowerCase' && 'One lowercase letter'}
-                    {check === 'hasNumber' && 'One number'}
-                    {check === 'hasSpecialChar' && 'One special character'}
+                    {check === "minLength" && "At least 8 characters"}
+                    {check === "hasUpperCase" && "One uppercase letter"}
+                    {check === "hasLowerCase" && "One lowercase letter"}
+                    {check === "hasNumber" && "One number"}
+                    {check === "hasSpecialChar" && "One special character"}
                   </span>
                 </div>
               ))}
@@ -236,7 +248,7 @@ const SignupPage = () => {
                 Creating account...
               </span>
             ) : (
-              'Sign Up'
+              "Sign Up"
             )}
           </button>
         </form>

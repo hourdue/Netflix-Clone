@@ -1,6 +1,6 @@
 export const isAuthenticated = async () => {
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/auth/user/", {
+    const response = await fetch("http://localhost:3000/api/profile", {
       method: "GET",
       credentials: "include",
       headers: {
@@ -9,7 +9,12 @@ export const isAuthenticated = async () => {
     });
 
     const data = await response.json();
-    return data.isAuthenticated === true;
+    if(data.user){
+      return true
+    }
+    else{
+      return false
+    }
   } catch (error) {
     console.error("Auth check failed:", error);
     return false;
@@ -18,7 +23,7 @@ export const isAuthenticated = async () => {
 
 export const logout = async () => {
   try {
-    await fetch("http://127.0.0.1:8000/api/auth/logout/", {
+    await fetch("http://localhost:3000/auth/logout", {
       method: "POST",
       credentials: "include",
     });

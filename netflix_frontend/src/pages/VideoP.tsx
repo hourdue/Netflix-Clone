@@ -32,7 +32,7 @@ const VideoP = () => {
 
   return (
     <div>
-      <VideoPlayer src={movie.video_url} />
+      <VideoPlayer src={"/" + movie.video_url} />
     </div>
   );
 };
